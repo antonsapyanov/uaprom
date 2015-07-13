@@ -31,7 +31,7 @@ class RedisCache(object):
 
         status_bytes = status.encode(encoding)
         headers_bytes = json.dumps({key: value for key, value in headers}).encode(encoding)
-        response_bytes = "".join(response)
+        response_bytes = "".join((piece.decode(encoding) for piece in response))
 
         mapping = {
             STATUS: status_bytes,
