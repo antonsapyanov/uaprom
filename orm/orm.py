@@ -34,13 +34,20 @@ class BaseMeta(type):
         for field_name, field_obj in attributes.items():
             if isinstance(field_obj, Field):
                 setattr(field_obj, 'name', field_name)
+                setattr(field_obj, 'tablename', tablename)
                 setattr(field_obj.__class__,
                         '__eq__',
-                        lambda self, other: "{}.{} = {}".format(tablename, self.name, str(other)))
+                        lambda self, other: "{}.{} = {}".format(self.tablename, self.name, str(other)))
+                setattr(field_obj.__class__,
+                        '__get__',
+                        mcs._create_get_field())
+                setattr(field_obj.__class__,
+                        '__set__',
+                        mcs._create_set_field())
                 fields[field_name] = field_obj
 
         attributes.update({
-            '__init__': mcs._create_init(fields, tablename),
+            '__init__': mcs._create_init(fields),
             'get': mcs._create_get(),
         })
 
@@ -59,33 +66,29 @@ class BaseMeta(type):
             mcs.__tablenames__.add(tablename)
 
     @classmethod
-    def _create_init(mcs, fields, tablename):
+    def _create_init(mcs, fields):
         def init(self, **kwargs):
+            tablename = self.__class__.__tablename__
+
             if ID in kwargs and kwargs[ID] in mcs.__used_id__[tablename]:
-                self.id = kwargs[ID]
+                self._id = kwargs[ID]
             elif ID in kwargs and kwargs[ID] not in mcs.__used_id__[tablename]:
-                raise IndexError("You are not allowed to add custom id")
+                raise ValueError("You are not allowed to add custom id")
             else:
-                self.id = 1 if len(mcs.__used_id__[tablename]) == 0 else max(mcs.__used_id__[tablename]) + 1
-                mcs.__used_id__[tablename].add(self.id)
-                new_row = {ID: self.id}
+                self._id = 1 if len(mcs.__used_id__[tablename]) == 0 else max(mcs.__used_id__[tablename]) + 1
+                mcs.__used_id__[tablename].add(self._id)
+                new_row = {ID: self._id}
 
                 for field_name, field_obj in fields.items():
-                    if not isinstance(kwargs[field_name], field_obj.field_type):
+                    field_value = kwargs.get(field_name, None)
+
+                    if field_value is not None and not isinstance(kwargs[field_name], field_obj.field_type):
                         raise TypeError("field type must be %s not %s" % (field_obj.field_type,
                                                                           type(kwargs[field_name])))
-                    new_row[field_name] = kwargs[field_name]
+                    new_row[field_name] = field_value
 
                 mcs.__data_storage__[tablename].append(new_row)
 
-            for field_name, field_obj in fields.items():
-                setattr(self.__class__,
-                        field_name,
-                        property(fget=mcs._create_fget(field_name),
-                                 fset=mcs._create_fset(field_name, field_obj.field_type)))
-
-                # self.__dict__.update({field_name: property(fget=mcs._create_fget(field_name),
-                #                                            fset=mcs._create_fset(field_name, field_obj.field_type))})
         return init
 
     @classmethod
@@ -98,26 +101,28 @@ class BaseMeta(type):
         return classmethod(get)
 
     @classmethod
-    def _create_fget(mcs, field_name):
-        def fget(self):
-            for row in mcs.__data_storage__[self.__class__.__tablename__]:
-                if self.id == row[ID]:
-                    return row[field_name]
+    def _create_get_field(mcs):
+        def __get__(self, instance, owner):
+            if instance is None:
+                return self
 
-        return fget
+            for row in mcs.__data_storage__[owner.__tablename__]:
+                if instance._id == row[ID]:
+                    return row[self.name]
+
+        return __get__
 
     @classmethod
-    def _create_fset(mcs, field_name, field_type):
-        def fset(self, value):
-            if not isinstance(value, field_type):
-                raise TypeError("field type must be %s not %s" % (field_type, type(value)))
+    def _create_set_field(mcs):
+        def __set__(self, instance, value):
+            if not isinstance(value, self.field_type):
+                raise TypeError("field type must be %s not %s" % (self.field_type, type(value)))
 
-            for row in mcs.__data_storage__[self.__class__.__tablename__]:
-                if self.id == row[ID]:
-                    row[field_name] = value
+            for row in mcs.__data_storage__[self.tablename]:
+                if instance._id == row[ID]:
+                    row[self.name] = value
 
-        return fset
-
+        return __set__
 
 class Field:
     pass
@@ -141,4 +146,10 @@ class User(Entity):
     rate = IntegerField()
 
 if __name__ == '__main__':
-    pass
+    u = User.get(1)
+    print(u.name)
+    u.name = "Chuck"
+    print(u.name)
+    print(User.name == "Vasyza")
+    u1 = User(name='Anton', rate=1)
+    print(u1.id, u1.name, u1.rate)
