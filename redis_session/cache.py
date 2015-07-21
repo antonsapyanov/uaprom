@@ -2,7 +2,7 @@ import redis
 import json
 
 
-DEFAULT_EXPIRE = 60 * 60 * 24 * 14  # 14 days (in seconds)
+DEFAULT_EXPIRE = 60 * 60 * 24 * 1  # 1 day (in seconds)
 
 STATUS = b'status'
 HEADERS = b'headers'

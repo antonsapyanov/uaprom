@@ -82,9 +82,9 @@ class BaseMeta(type):
                 for field_name, field_obj in fields.items():
                     field_value = kwargs.get(field_name, None)
 
-                    if field_value is not None and not isinstance(kwargs[field_name], field_obj.field_type):
+                    if field_value is not None and not isinstance(field_value, field_obj.field_type):
                         raise TypeError("field type must be %s not %s" % (field_obj.field_type,
-                                                                          type(kwargs[field_name])))
+                                                                          type(field_value)))
                     new_row[field_name] = field_value
 
                 mcs.__data_storage__[tablename].append(new_row)

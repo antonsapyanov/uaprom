@@ -1,4 +1,5 @@
 from cache import RedisCache
+from urllib.parse import parse_qsl
 import config
 
 
@@ -14,7 +15,7 @@ class SessionMiddleware(object):
 
         cache = RedisCache(config.REDIS_HOST, config.REDIS_PORT)
         url = "{path}?{query}".format(path=environ.get('PATH_INFO'),
-                                      query=environ.get('QUERY_STRING'))
+                                      query=get_sorted_query(environ.get('QUERY_STRING')))
 
         if cache.exists(url):
             status, headers, response = cache.get(url)
@@ -27,3 +28,9 @@ class SessionMiddleware(object):
             headers = status_and_headers['headers']
             cache.set(url, status, headers, response)
             return response
+
+
+def get_sorted_query(query_string):
+    query_list = parse_qsl(query_string)
+    query_list.sort(key=lambda value: value[0])
+    return '&'.join('='.join(pair) for pair in query_list)
