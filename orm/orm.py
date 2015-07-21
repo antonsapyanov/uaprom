@@ -67,7 +67,7 @@ class BaseMeta(type):
 
     @classmethod
     def _create_init(mcs, fields):
-        def init(self, **kwargs):
+        def __init__(self, **kwargs):
             tablename = self.__class__.__tablename__
 
             if ID in kwargs and kwargs[ID] in mcs.__used_id__[tablename]:
@@ -89,7 +89,7 @@ class BaseMeta(type):
 
                 mcs.__data_storage__[tablename].append(new_row)
 
-        return init
+        return __init__
 
     @classmethod
     def _create_get(mcs):
@@ -106,7 +106,7 @@ class BaseMeta(type):
             if instance is None:
                 return self
 
-            for row in mcs.__data_storage__[owner.__tablename__]:
+            for row in mcs.__data_storage__[self.tablename]:
                 if instance._id == row[ID]:
                     return row[self.name]
 
