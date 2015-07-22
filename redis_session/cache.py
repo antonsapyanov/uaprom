@@ -2,11 +2,8 @@ import redis
 import json
 
 
-DEFAULT_EXPIRE = 60 * 60 * 24 * 1  # 1 day (in seconds)
-
-STATUS = b'status'
-HEADERS = b'headers'
-RESPONSE = b'response'
+# DEFAULT_EXPIRE = 60 * 60 * 24 * 1  # 1 day (in seconds)
+DEFAULT_EXPIRE = 5  # 5 seconds (in seconds)
 
 
 class RedisCache(object):
@@ -16,28 +13,12 @@ class RedisCache(object):
     def exists(self, url):
         return self.server.exists(url)
 
-    def get(self, url, mode='utf-8'):
-        result = self.server.hgetall(url)
+    def get(self, url):
+        return self.server.get(url)
 
-        status = result[STATUS].decode(mode)
-        headers = [(key, value) for key, value in json.loads(str(result[HEADERS], mode)).items()]
-        response = result[RESPONSE]
-
-        return status, headers, [response]
-
-    def set(self, url, status, headers, response, expire=None, encoding='utf-8'):
+    def set(self, url, response, expire=None):
         if expire is None:
             expire = DEFAULT_EXPIRE
 
-        status_bytes = status.encode(encoding)
-        headers_bytes = json.dumps({key: value for key, value in headers}).encode(encoding)
-        response_bytes = "".join((piece.decode(encoding) for piece in response))
-
-        mapping = {
-            STATUS: status_bytes,
-            HEADERS: headers_bytes,
-            RESPONSE: response_bytes
-        }
-
-        self.server.hmset(url, mapping)
+        self.server.set(url, response)
         self.server.expire(url, expire)
