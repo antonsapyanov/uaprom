@@ -3,5 +3,4 @@ def send_json_data(environ, start_response):
     headers = [('Content-Type', 'application/json')]
 
     start_response(status, headers)
-    return [str(__import__('random').randint(0, 100)).encode()]
-    # return [open('data', 'r').read().encode()]
+    return [open('data', 'r').read().encode()]

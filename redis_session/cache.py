@@ -1,8 +1,6 @@
 import redis
-import json
 
 
-# DEFAULT_EXPIRE = 60 * 60 * 24 * 1  # 1 day (in seconds)
 DEFAULT_EXPIRE = 5  # 5 seconds (in seconds)
 
 
