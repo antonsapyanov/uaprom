@@ -8,13 +8,16 @@ class RedisCache(object):
     def __init__(self, host, port):
         self.server = redis.StrictRedis(host, port)
 
-    def exists(self, url):
+    def __contains__(self, url):
         return self.server.exists(url)
 
-    def get(self, url):
+    def __getitem__(self, url):
         return self.server.get(url)
 
-    def set(self, url, response, expire=None):
+    def __setitem__(self, url, value):
+        response = value.response
+        expire = value.expire
+
         if expire is None:
             expire = DEFAULT_EXPIRE
 
