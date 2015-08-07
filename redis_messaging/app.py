@@ -6,23 +6,25 @@ import sys
 class PubSubApplication(object):
     def __init__(self, host, port):
         self.COMMANDS = {
-            'subscribe': self.subscribe,
-            'unsubscribe': self.unsubscribe,
-            'publish': self.publish,
+            'sub': self.subscribe,
+            'unsub': self.unsubscribe,
+            'pub': self.publish,
             'quit': self.quit
         }
 
-        self.server = redis.StrictRedis(host, port)
-        self.pubsub = self.server.pubsub()
+        self._server = redis.StrictRedis(host, port)
+        self._pubsub = self._server.pubsub()
 
-        self.username = None
+        self._already_created_thread = False
+        self._username = None
 
     def run(self):
-        self.username = input('Enter your username: ')
+        self._username = input('Enter your username: ')
         while True:
             input_dict = self.parse_input(input())
             if input_dict['command'] not in self.COMMANDS:
-                self.show_error('there is no such command')
+                self.show_error('there is no such command; '
+                                'use one from next: {}'.format(', '.join(self.COMMANDS.keys())))
             else:
                 self.execute(input_dict['command'], input_dict['params'])
 
@@ -37,31 +39,34 @@ class PubSubApplication(object):
             return
         channel = params[0]
         message = params[1]
-        self.server.publish(channel, "{user}: {message}".format(user=self.username, message=message))
+        self._server.publish(channel, "{user}: {message}".format(user=self._username, message=message))
 
     def subscribe(self, channels):
         channels = channels.split(' ')
         if len(channels) == 0:
             self.show_error('expected at least 1 channel, nothing is given')
-        self.pubsub.subscribe(channels)
+        self._pubsub.subscribe(channels)
 
-        messaging_thread = threading.Thread(target=self._notification_thread)
-        messaging_thread.start()
+        if not self._already_created_thread:
+            messaging_thread = threading.Thread(target=self._notification_thread)
+            messaging_thread.start()
 
     def _notification_thread(self):
-        for message in self.pubsub.listen():
-            print("({channel}) {message}".format(channel=message['channel'].decode(),
-                                                message=message['data']))
+        for message in self._pubsub.listen():
+            channel = message['channel'].decode()
+            data = message['data'].decode() if isinstance(message['data'], bytes) else message['data']
+            print("({channel}) {data}".format(channel=channel,
+                                              data=data))
 
     def unsubscribe(self, channels=None):
         if channels is not None:
-            self.pubsub.unsubscribe(channels.split(' '))
+            self._pubsub.unsubscribe(channels.split(' '))
         else:
-            self.pubsub.unsubscribe()
+            self._pubsub.unsubscribe()
 
     def quit(self, *args):
         self.unsubscribe()
-        print('Bye, bye {user}'.format(user=self.username))
+        print('Bye, bye {user}'.format(user=self._username))
         sys.exit(0)
 
     @staticmethod
