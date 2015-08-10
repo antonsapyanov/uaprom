@@ -24,9 +24,21 @@ def deferred_handle(request):
 
 
 @asyncio.coroutine
+def fibonacci(request):
+    index = int(request.match_info.get('index'))
+    a = b = 1
+    for _ in range(index - 1):
+        tmp = a
+        a = b
+        b += tmp
+    return web.Response(body=str(a).encode('utf-8'))
+
+
+@asyncio.coroutine
 def init(loop):
     app = web.Application(loop=loop)
     app.router.add_route('GET', '/count/{key}', deferred_handle)
+    app.router.add_route('GET', '/fibonacci/{index}', fibonacci)
 
     srv = yield from loop.create_server(app.make_handler(), '127.0.0.1', 8080)
     print("Server started at http://127.0.0.1:8080")
