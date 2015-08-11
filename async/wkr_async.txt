@@ -1,19 +1,21 @@
-Running 30s test @ http://127.0.0.1:8080/count/1
+Running 30s test @ http://127.0.0.1:7777/count/1
   12 threads and 400 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency   543.86ms   15.14ms 761.65ms   97.28%
-    Req/Sec    85.21     80.78   323.00     76.80%
-  20881 requests in 30.06s, 2.77MB read
-Requests/sec:    694.61
-Transfer/sec:     94.19KB
+    Latency   941.11ms  187.71ms   2.00s    76.88%
+    Req/Sec    44.98     45.67   313.00     87.24%
+  11987 requests in 30.09s, 1.58MB read
+  Socket errors: connect 0, read 0, write 0, timeout 125
+Requests/sec:    398.32
+Transfer/sec:     53.74KB
 
 
-Running 30s test @ http://127.0.0.1:8080/fibonacci/77
+
+Running 30s test @ http://127.0.0.1:7777/fibonacci/77
   12 threads and 400 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency   116.67ms   72.49ms   2.00s    96.82%
-    Req/Sec   281.63     80.95   848.00     88.66%
-  99016 requests in 30.10s, 14.28MB read
-  Socket errors: connect 0, read 9, write 0, timeout 121
-Requests/sec:   3289.58
-Transfer/sec:    485.79KB
+    Latency   146.35ms   79.49ms   1.99s    94.83%
+    Req/Sec   223.33     81.92   770.00     84.93%
+  76180 requests in 30.03s, 10.99MB read
+  Socket errors: connect 0, read 0, write 0, timeout 107
+Requests/sec:   2536.83
+Transfer/sec:    374.59KB

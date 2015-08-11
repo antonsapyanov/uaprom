@@ -50,6 +50,7 @@ class PubSubApplication(object):
         if not self._already_created_thread:
             messaging_thread = threading.Thread(target=self._notification_thread)
             messaging_thread.start()
+            self._already_created_thread = True
 
     def _notification_thread(self):
         for message in self._pubsub.listen():

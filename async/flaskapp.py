@@ -1,14 +1,16 @@
 from flask import Flask
-
-STORAGE = {}
+import requests
+from .config import config
 
 app = Flask(__name__)
 
 
 @app.route('/count/<key>')
 def handle(key):
-    STORAGE[key] = STORAGE.get(key, 0) + 1
-    return str(STORAGE[key])
+    response = requests.get("http://{host}:{port}/count/{key}".format(host=config['MAIN_ASYNC_SERVER_HOST'],
+                                                                      port=config['MAIN_ASYNC_SERVER_PORT'],
+                                                                      key=key))
+    return response.text
 
 
 @app.route('/fibonacci/<int:index>')

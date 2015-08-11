@@ -1,0 +1,4 @@
+config = {
+    'MAIN_ASYNC_SERVER_HOST': '127.0.0.1',
+    'MAIN_ASYNC_SERVER_PORT': 8080
+}
