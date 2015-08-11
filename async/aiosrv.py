@@ -2,7 +2,7 @@ import asyncio
 import aiohttp
 
 from aiohttp import web
-from .config import config
+from config import config
 
 
 @asyncio.coroutine
